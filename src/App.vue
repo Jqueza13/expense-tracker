@@ -2,19 +2,19 @@
   import Header from './components/Header.vue';
   import Balance from './components/Balance.vue';
   import IncomeExpenses from './components/IncomeExpenses.vue';
-  import AddTransaction from  './components/AddTransaction.vue';
+  import AddTransaction from './components/AddTransaction.vue';
   import TransactionList from './components/TransactionList.vue';
-  import {ref, computed} from 'vue'
+  import {ref, computed, onMounted} from 'vue'
 
   const transactions = ref([])
-  
-  //const transactions = ref([
-  //{id: 1, text: 'Paycheck', amount: 699.99},
-  //{id: 2, text: 'Food', amount: -20},
-  //{id: 3, text: 'Bills', amount: -200},
-  //{id: 4, text: 'Video Games', amount: -54.11},
-  //{id: 5, text: 'Tax Return', amount: 3000},
-  //])
+
+  // const transactions = ref([
+  //   {id: 1, text: 'Paycheck', amount: 699.99},
+  //   {id: 2, text: 'Food', amount: -20},
+  //   {id: 3, text: 'Bills', amount: -200},
+  //   {id: 4, text: 'Video Games', amount: -54.11},
+  //   {id: 5, text: 'Tax Return', amount: 3000},
+  // ])
 
   //get the total
   const total = computed(() => {
@@ -41,12 +41,14 @@
   })
 
   //handle transaction submitted
-  const handletransactionSubmitted = (transactionData) => {
+  const handleTransactionSubmitted = (transactionData) => {
     transactions.value.push({
       id: generateUniqueId(),
       text: transactionData.text,
       amount: transactionData.amount,
     })
+
+    saveTransactionToLocalStorage ()
   }
 
 
@@ -57,10 +59,24 @@
 
   //delete transaction
   const handleTransactionDeleted = (id) => {
-    transactions.value = transactions.value.filter((transaction) => transaction.id !==id)
-    
+    transactions.value = transactions.value.filter((transaction) => transaction.id !== id)
+    saveTransactionToLocalStorage()
   }
 
+  //save to local storage
+  const saveTransactionToLocalStorage = () => {
+    localStorage.setItem('transactions', JSON.stringify(transactions.value))
+  }
+
+  //first loads
+  onMounted(() => {
+    const savedTransaction = JSON.parse(localStorage.getItem('transactions'))
+
+    if(savedTransaction)
+    {
+      transactions.value = savedTransactions
+    }
+  })
 
 </script>
 
@@ -70,8 +86,7 @@
     <Balance :total="total"></Balance>
     <IncomeExpenses :income="income" :expense="expense"></IncomeExpenses>
     <TransactionList :transactions="transactions" @transactionDeleted="handleTransactionDeleted"></TransactionList>
-
-    <AddTransaction @transactionSubmitted="handletransactionSubmitted"></AddTransaction>
+    <AddTransaction @transactionSubmitted="handleTransactionSubmitted"></AddTransaction>
     <!-- {{ transactions }} -->
   </div>
 </template>
